@@ -1,5 +1,6 @@
 package com.graduate.response;
 
+import com.graduate.base.PostAbs;
 import com.graduate.model.ModerationStatus;
 import com.graduate.model.Tags;
 import com.graduate.model.Post;

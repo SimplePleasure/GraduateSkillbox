@@ -1,5 +1,6 @@
 package com.graduate.response;
 
+import com.graduate.base.PostAbs;
 import com.graduate.model.Post;
 
 public class PostForList extends PostAbs {

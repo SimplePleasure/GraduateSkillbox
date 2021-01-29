@@ -1,8 +1,11 @@
-package com.graduate.model;
+package com.graduate.service;
 
 import com.graduate.Mapper;
+import com.graduate.base.ResponseAbs;
+import com.graduate.model.Post;
+import com.graduate.model.PostRepository;
 import com.graduate.response.PostInstance;
-import com.graduate.response.TransformToResponsePostList;
+import com.graduate.response.PostList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -11,25 +14,16 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class RepositoryConnector {
+public class PostService {
 
-    private static PostRepository postRepository;
-    private static UserRepository userRepository;
+    private PostRepository postRepository;
 
-    public RepositoryConnector(@Autowired PostRepository postRepository, @Autowired UserRepository userRepository) {
-        RepositoryConnector.userRepository = userRepository;
-        RepositoryConnector.postRepository = postRepository;
-    }
-
-    public static PostRepository getPostRepository() {
-        return postRepository;
-    }
-    public static UserRepository getUserRepository() {
-        return userRepository;
+    public PostService(@Autowired PostRepository postRepository) {
+        this.postRepository = postRepository;
     }
 
 
-    public static String getPostsByMode(int offset, int limit, String mode) {
+    public ResponseAbs getPostsByMode(int offset, int limit, String mode) {
         List<Post> posts;
         int postsCount = postRepository.getPostsCountByMode();
         switch (mode) {
@@ -49,50 +43,44 @@ public class RepositoryConnector {
                 posts = Collections.emptyList();
         }
 
-        TransformToResponsePostList response = new TransformToResponsePostList(postsCount, posts);
-        return Mapper.getJSON(response);
+        return new PostList(postsCount, posts);
     }
 
-    public static String getPostsBySearch(int offset, int limit, String searchQuery) {
+    public ResponseAbs getPostsBySearch(int offset, int limit, String searchQuery) {
         searchQuery = "%" + searchQuery + "%";
         int postsCount = postRepository.getPostsCountBySearchQuery(searchQuery);
         List<Post> posts = postRepository.findPostsBySearchQuery(offset, limit, searchQuery);
-
-        TransformToResponsePostList response = new TransformToResponsePostList(postsCount, posts);
-        return Mapper.getJSON(response);
+        return new PostList(postsCount, posts);
     }
 
-    public static String getPostsByDate(int offset, int limit, String date) {
+    public ResponseAbs getPostsByDate(int offset, int limit, String date) {
         date = date + "%";
 
         int postsCount = postRepository.getPostsCountByDate(date);
         List<Post> posts = postRepository.findPostsByDate(offset, limit, date);
 
-        TransformToResponsePostList response = new TransformToResponsePostList(postsCount, posts);
-        return Mapper.getJSON(response);
+        return new PostList(postsCount, posts);
     }
 
-    public static String getPostsByTag(int offset, int limit, String tag) {
+    public ResponseAbs getPostsByTag(int offset, int limit, String tag) {
         Integer postCount = postRepository.getPostsCountByTag(tag);
         List<Post> posts = postRepository.findPostsByTag(offset, limit, tag);
 
-        TransformToResponsePostList response = new TransformToResponsePostList(postCount, posts);
-        return Mapper.getJSON(response);
+        return new PostList(postCount, posts);
     }
 
-    public static String getPostsByModerationStatus(int offset, int limit, String status) {
+    public ResponseAbs getPostsByModerationStatus(int offset, int limit, String status) {
         // TODO: 17.01.2021 implement receiving moderator_id (add check is the current user a moderator?)
         int moderatorId = 1;
 
         int postsCount = postRepository.getPostsCountByModerationStatus(status, moderatorId);
         List<Post> posts = postRepository.findPostsByModerationStatus(offset, limit, status, moderatorId);
 
-        TransformToResponsePostList response = new TransformToResponsePostList(postsCount, posts);
-        return Mapper.getJSON(response);
+        return new PostList(postsCount, posts);
     }
 
 
-    public static String getMyPosts(int offset, int limit, String status) {
+    public ResponseAbs getMyPosts(int offset, int limit, String status) {
         int userId = 1; // TODO: 17.01.2021 implement receiving user_id (is the user has auth)
         int isActive;
         String moderationStatus;
@@ -122,14 +110,13 @@ public class RepositoryConnector {
 
         int postsCount = postRepository.getMyPostsCount(userId, isActive, moderationStatus);
         List<Post> posts = postRepository.findMyPosts(offset, limit, userId, isActive, moderationStatus);
-
-        TransformToResponsePostList response = new TransformToResponsePostList(postsCount, posts);
-        return Mapper.getJSON(response);
+        return new PostList(postsCount, posts);
     }
 
-    public static String getPostById(int postId) {
+    public ResponseAbs getPostById(int postId) {
+        // TODO: 29.01.2021 optional.map() throwing nullpointer?
         Optional<Post> optional = postRepository.findById(postId);
-        return optional.isPresent() ? Mapper.getJSON(new PostInstance(optional.get())) : "";
+        return optional.map(PostInstance::new).orElse(null);
     }
 
 }

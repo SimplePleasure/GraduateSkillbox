@@ -1,67 +1,74 @@
 package com.graduate.controller;
 
-import com.graduate.model.RepositoryConnector;
+import com.graduate.base.ResponseAbs;
+import com.graduate.service.PostService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 
-@Controller
+@RestController
 @RequestMapping(value = "/api/post")
 public class ApiPostController {
 
+    private PostService postService;
+
+    public ApiPostController(@Autowired PostService postService) {
+        this.postService = postService;
+    }
+
 
     @RequestMapping(method = RequestMethod.GET, produces = "application/json")
-    public ResponseEntity<String> getPostsByMode(@RequestParam int offset,
-                                                 @RequestParam int limit, @RequestParam String mode) {
-        System.err.println(offset +"\t"+ limit +"\t"+ mode);
-        String result = RepositoryConnector.getPostsByMode(offset, limit, mode);
+    public ResponseEntity<ResponseAbs> getPostsByMode(@RequestParam int offset,
+                                                      @RequestParam int limit, @RequestParam String mode) {
+
+        ResponseAbs result = postService.getPostsByMode(offset, limit, mode);
         return ResponseEntity.status(HttpStatus.OK).body(result);
     }
 
     @RequestMapping(value = "/search", method = RequestMethod.GET, produces = "application/json")
-    public ResponseEntity<String> getPostsBySearch(@RequestParam int offset,
+    public ResponseEntity<ResponseAbs> getPostsBySearch(@RequestParam int offset,
                                                    @RequestParam int limit, @RequestParam String query) {
-        String result = RepositoryConnector.getPostsBySearch(offset, limit, query);
+        ResponseAbs result = postService.getPostsBySearch(offset, limit, query);
         return ResponseEntity.status(HttpStatus.OK).body(result);
     }
 
     @RequestMapping(value = "/byDate", method = RequestMethod.GET, produces = "application/json")
-    public ResponseEntity<String> getPostsByDate(@RequestParam int offset,
+    public ResponseEntity<ResponseAbs> getPostsByDate(@RequestParam int offset,
                                                  @RequestParam int limit, @RequestParam String date) {
-        String result = RepositoryConnector.getPostsByDate(offset, limit, date);
+        ResponseAbs result = postService.getPostsByDate(offset, limit, date);
         return ResponseEntity.status(HttpStatus.OK).body(result);
     }
 
     @RequestMapping(value = "/byTag", method = RequestMethod.GET, produces = "application/json")
-    public ResponseEntity<String> getPostsByTag(@RequestParam int offset,
+    public ResponseEntity<ResponseAbs> getPostsByTag(@RequestParam int offset,
                                                 @RequestParam int limit, @RequestParam String tag) {
-        String result = RepositoryConnector.getPostsByTag(offset, limit, tag);
+        ResponseAbs result = postService.getPostsByTag(offset, limit, tag);
         return ResponseEntity.status(HttpStatus.OK).body(result);
     }
 
     @RequestMapping(value = "/moderation", method = RequestMethod.GET, produces = "application/json")
-    public ResponseEntity<String> getPostsByModerationStatus(@RequestParam int offset,
+    public ResponseEntity<ResponseAbs> getPostsByModerationStatus(@RequestParam int offset,
                                                              @RequestParam int limit, @RequestParam String status) {
         // TODO: 17.01.2021 implement receiving moderator_id (is the current user a moderator?)
-        String result = RepositoryConnector.getPostsByModerationStatus(offset, limit, status);
+        ResponseAbs result = postService.getPostsByModerationStatus(offset, limit, status);
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body(result);
     }
 
     @RequestMapping(value = "/my", method = RequestMethod.GET, produces = "application/json")
-    public ResponseEntity<String> getMyPosts(@RequestParam int offset,
+    public ResponseEntity<ResponseAbs> getMyPosts(@RequestParam int offset,
                                              @RequestParam int limit, @RequestParam String status) {
         // TODO: 17.01.2021 implement receiving user_id (is the user has auth)
-        String result = RepositoryConnector.getMyPosts(offset, limit, status);
+        ResponseAbs result = postService.getMyPosts(offset, limit, status);
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body(result);
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.GET, produces = "application/json")
-    public ResponseEntity<String> getPostById(@PathVariable int id) {
-        String result = RepositoryConnector.getPostById(id);
-        return result.length() > 0 ? ResponseEntity.status(HttpStatus.OK).body(result) :
-                                        ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+    public ResponseEntity<ResponseAbs> getPostById(@PathVariable int id) {
+        ResponseAbs result = postService.getPostById(id);
+        return result == null ? ResponseEntity.status(HttpStatus.NOT_FOUND).body(null) :
+                ResponseEntity.status(HttpStatus.OK).body(result);
     }
 
 

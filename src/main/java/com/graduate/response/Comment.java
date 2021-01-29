@@ -1,5 +1,6 @@
 package com.graduate.response;
 
+import com.graduate.base.UserAbs;
 import com.graduate.model.PostComments;
 
 public class Comment {
@@ -7,7 +8,7 @@ public class Comment {
     private int id;
     private String timestamp;
     private String text;
-    private UserWithPhoto user;
+    private UserAbs user;
 
 //    public Comments(int id, String timestamp, String text, UserWithPhoto user) {
 //        this.id = id;
@@ -45,7 +46,7 @@ public class Comment {
         this.text = text;
     }
 
-    public UserWithPhoto getUser() {
+    public UserAbs getUser() {
         return user;
     }
     public void setUser(UserWithPhoto user) {

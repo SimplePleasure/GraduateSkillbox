@@ -1,16 +1,17 @@
 package com.graduate.response;
 
+import com.graduate.base.ResponseAbs;
 import com.graduate.model.Post;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class TransformToResponsePostList {
+public class PostList extends ResponseAbs {
 
     private int count;
     private List<PostForList> posts;
 
-    public TransformToResponsePostList(int count, List<Post> posts) {
+    public PostList(int count, List<Post> posts) {
         this.count = count;
         this.posts = posts
                 .stream()
