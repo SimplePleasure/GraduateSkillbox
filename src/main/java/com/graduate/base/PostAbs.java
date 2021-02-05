@@ -3,7 +3,7 @@ package com.graduate.base;
 import com.graduate.model.Post;
 import com.graduate.response.UserSimplify;
 
-public abstract class PostAbs extends ResponseAbs {
+public abstract class PostAbs {
 
 
     private int id;
@@ -28,8 +28,6 @@ public abstract class PostAbs extends ResponseAbs {
         likeCount = post.getPostVotes().stream().filter(x -> x.getValue() > 0).count();
         dislikeCount = post.getPostVotes().size() - likeCount;
     }
-
-//    public PostAbs(int id, String timestamp, User)
 
 
     public int getId() {

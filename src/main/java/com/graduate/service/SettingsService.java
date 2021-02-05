@@ -13,7 +13,9 @@ public class SettingsService {
         this.settingsRepository = settingsRepository;
     }
 
+    // TODO: 31.01.2021 implement receive settings from repository
     public GlobalSettings getGlobalSettings() {
+        settingsRepository.count();
         return new GlobalSettings();
     }
 }

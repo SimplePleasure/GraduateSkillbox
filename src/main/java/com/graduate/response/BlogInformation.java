@@ -1,11 +1,11 @@
 package com.graduate.response;
 
+import com.graduate.base.IResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
 @Component
-public class BlogInformation {
+public class BlogInformation implements IResponse {
     @Value("${blog.information.title}")
     String title;
     @Value("${blog.information.subtitle}")

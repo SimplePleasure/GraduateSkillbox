@@ -1,6 +1,6 @@
 package com.graduate.controller;
 
-import com.graduate.base.ResponseAbs;
+import com.graduate.base.IResponse;
 import com.graduate.service.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,53 +20,52 @@ public class ApiPostController {
 
 
     @RequestMapping(method = RequestMethod.GET, produces = "application/json")
-    public ResponseEntity<ResponseAbs> getPostsByMode(@RequestParam int offset,
+    public ResponseEntity<IResponse> getPostsByMode(@RequestParam int offset,
                                                       @RequestParam int limit, @RequestParam String mode) {
-
-        ResponseAbs result = postService.getPostsByMode(offset, limit, mode);
+        IResponse result = postService.getPostsByMode(offset, limit, mode);
         return ResponseEntity.status(HttpStatus.OK).body(result);
     }
 
     @RequestMapping(value = "/search", method = RequestMethod.GET, produces = "application/json")
-    public ResponseEntity<ResponseAbs> getPostsBySearch(@RequestParam int offset,
+    public ResponseEntity<IResponse> getPostsBySearch(@RequestParam int offset,
                                                    @RequestParam int limit, @RequestParam String query) {
-        ResponseAbs result = postService.getPostsBySearch(offset, limit, query);
+        IResponse result = postService.getPostsBySearch(offset, limit, query);
         return ResponseEntity.status(HttpStatus.OK).body(result);
     }
 
     @RequestMapping(value = "/byDate", method = RequestMethod.GET, produces = "application/json")
-    public ResponseEntity<ResponseAbs> getPostsByDate(@RequestParam int offset,
+    public ResponseEntity<IResponse> getPostsByDate(@RequestParam int offset,
                                                  @RequestParam int limit, @RequestParam String date) {
-        ResponseAbs result = postService.getPostsByDate(offset, limit, date);
+        IResponse result = postService.getPostsByDate(offset, limit, date);
         return ResponseEntity.status(HttpStatus.OK).body(result);
     }
 
     @RequestMapping(value = "/byTag", method = RequestMethod.GET, produces = "application/json")
-    public ResponseEntity<ResponseAbs> getPostsByTag(@RequestParam int offset,
+    public ResponseEntity<IResponse> getPostsByTag(@RequestParam int offset,
                                                 @RequestParam int limit, @RequestParam String tag) {
-        ResponseAbs result = postService.getPostsByTag(offset, limit, tag);
+        IResponse result = postService.getPostsByTag(offset, limit, tag);
         return ResponseEntity.status(HttpStatus.OK).body(result);
     }
 
     @RequestMapping(value = "/moderation", method = RequestMethod.GET, produces = "application/json")
-    public ResponseEntity<ResponseAbs> getPostsByModerationStatus(@RequestParam int offset,
+    public ResponseEntity<IResponse> getPostsByModerationStatus(@RequestParam int offset,
                                                              @RequestParam int limit, @RequestParam String status) {
         // TODO: 17.01.2021 implement receiving moderator_id (is the current user a moderator?)
-        ResponseAbs result = postService.getPostsByModerationStatus(offset, limit, status);
+        IResponse result = postService.getPostsByModerationStatus(offset, limit, status);
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body(result);
     }
 
     @RequestMapping(value = "/my", method = RequestMethod.GET, produces = "application/json")
-    public ResponseEntity<ResponseAbs> getMyPosts(@RequestParam int offset,
+    public ResponseEntity<IResponse> getMyPosts(@RequestParam int offset,
                                              @RequestParam int limit, @RequestParam String status) {
         // TODO: 17.01.2021 implement receiving user_id (is the user has auth)
-        ResponseAbs result = postService.getMyPosts(offset, limit, status);
+        IResponse result = postService.getMyPosts(offset, limit, status);
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body(result);
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.GET, produces = "application/json")
-    public ResponseEntity<ResponseAbs> getPostById(@PathVariable int id) {
-        ResponseAbs result = postService.getPostById(id);
+    public ResponseEntity<IResponse> getPostById(@PathVariable int id) {
+        IResponse result = postService.getPostById(id);
         return result == null ? ResponseEntity.status(HttpStatus.NOT_FOUND).body(null) :
                 ResponseEntity.status(HttpStatus.OK).body(result);
     }

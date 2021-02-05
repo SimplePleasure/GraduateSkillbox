@@ -1,12 +1,12 @@
 package com.graduate.response;
 
-import com.graduate.base.ResponseAbs;
+import com.graduate.base.IResponse;
 import com.graduate.model.Post;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class PostList extends ResponseAbs {
+public class PostList implements IResponse {
 
     private int count;
     private List<PostForList> posts;

@@ -1,5 +1,6 @@
 package com.graduate.response;
 
+import com.graduate.base.IResponse;
 import com.graduate.base.PostAbs;
 import com.graduate.model.ModerationStatus;
 import com.graduate.model.Tags;
@@ -8,7 +9,7 @@ import com.graduate.model.Post;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class PostInstance extends PostAbs {
+public class PostInstance extends PostAbs implements IResponse {
 
     private boolean active;
     private String text;

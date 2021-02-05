@@ -1,8 +1,9 @@
 package com.graduate.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.graduate.base.IResponse;
 
-public class GlobalSettings {
+public class GlobalSettings implements IResponse {
 
     @JsonProperty(value = "MULTIUSER_MODE")
     boolean multiUserMode;
