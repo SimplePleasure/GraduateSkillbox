@@ -1,12 +1,14 @@
 package com.graduate.service;
 
 import com.graduate.base.IResponse;
+import com.graduate.core.ComputePages;
 import com.graduate.model.Post;
 import com.graduate.model.PostRepository;
 import com.graduate.response.PostInstance;
 import com.graduate.response.PostList;
 import com.graduate.response.PostsCountForCalendar;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -25,18 +27,19 @@ public class PostService {
     public IResponse getPostsByMode(int offset, int limit, String mode) {
         List<Post> posts;
         int postsCount = postRepository.getPostsCountByMode();
+        PageRequest pr = PageRequest.of(ComputePages.computePage(offset, limit), limit);
         switch (mode) {
             case "recent":
-                posts = postRepository.findRecentPosts(offset, limit);
+                posts = postRepository.findRecentPosts(pr);
                 break;
             case "early":
-                posts = postRepository.findEarlyPosts(offset, limit);
+                posts = postRepository.findEarlyPosts(pr);
                 break;
             case "popular":
-                posts = postRepository.findPopularPosts(offset, limit);
+                posts = postRepository.findPopularPosts(pr);
                 break;
             case "best":
-                posts = postRepository.findBestPosts(offset, limit);
+                posts = postRepository.findBestPosts(pr);
                 break;
             default:
                 posts = Collections.emptyList();
@@ -48,22 +51,24 @@ public class PostService {
     public IResponse getPostsBySearch(int offset, int limit, String searchQuery) {
         searchQuery = "%" + searchQuery + "%";
         int postsCount = postRepository.getPostsCountBySearchQuery(searchQuery);
-        List<Post> posts = postRepository.findPostsBySearchQuery(offset, limit, searchQuery);
+        List<Post> posts = postRepository.findPostsBySearchQuery(
+                PageRequest.of(ComputePages.computePage(offset, limit), limit), searchQuery);
         return new PostList(postsCount, posts);
     }
 
     public IResponse getPostsByDate(int offset, int limit, String date) {
         date = date + "%";
-
         int postsCount = postRepository.getPostsCountByDate(date);
-        List<Post> posts = postRepository.findPostsByDate(offset, limit, date);
-
+        List<Post> posts = postRepository.findPostsByDate(
+                PageRequest.of(ComputePages.computePage(offset, limit), limit), date);
         return new PostList(postsCount, posts);
     }
 
     public IResponse getPostsByTag(int offset, int limit, String tag) {
+        // TODO: 08.02.2021 can use primitive type here?
         Integer postCount = postRepository.getPostsCountByTag(tag);
-        List<Post> posts = postRepository.findPostsByTag(offset, limit, tag);
+        List<Post> posts = postRepository.findPostsByTag(
+                PageRequest.of(ComputePages.computePage(offset, limit), limit), tag);
 
         return new PostList(postCount, posts);
     }
@@ -73,8 +78,8 @@ public class PostService {
         int moderatorId = 1;
 
         int postsCount = postRepository.getPostsCountByModerationStatus(status, moderatorId);
-        List<Post> posts = postRepository.findPostsByModerationStatus(offset, limit, status, moderatorId);
-
+        List<Post> posts = postRepository.findPostsByModerationStatus(
+                PageRequest.of(ComputePages.computePage(offset, limit), limit), status, moderatorId);
         return new PostList(postsCount, posts);
     }
 
@@ -108,7 +113,8 @@ public class PostService {
         }
 
         int postsCount = postRepository.getMyPostsCount(userId, isActive, moderationStatus);
-        List<Post> posts = postRepository.findMyPosts(offset, limit, userId, isActive, moderationStatus);
+        List<Post> posts = postRepository.findMyPosts(PageRequest.of(ComputePages.computePage(offset, limit), limit),
+                userId, isActive, moderationStatus);
         return new PostList(postsCount, posts);
     }
 

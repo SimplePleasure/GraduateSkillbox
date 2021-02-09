@@ -14,6 +14,6 @@ public class TagService {
     }
 
     public TagsWeight getTagWeight(String query) {
-        return new TagsWeight(tag2PostRepository.getTags(query + "%"));
+        return new TagsWeight(tag2PostRepository.getTags("%" + query + "%"));
     }
 }
