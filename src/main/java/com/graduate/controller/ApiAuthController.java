@@ -2,6 +2,7 @@ package com.graduate.controller;
 
 import com.graduate.base.IResponse;
 import com.graduate.service.AuthService;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 @RestController

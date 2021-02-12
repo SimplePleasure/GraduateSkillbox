@@ -49,6 +49,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/test3").hasRole("1")
                 .antMatchers("/test2").authenticated()
                 .antMatchers("/test1").permitAll()
-                .and().formLogin();
+                .and().formLogin()
+                .loginPage("/log")
+                .loginProcessingUrl("/api/auth/login")
+                .usernameParameter("e_mail")
+                .passwordParameter("password")
+                .defaultSuccessUrl("/");
     }
 }
