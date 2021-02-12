@@ -110,6 +110,11 @@ public interface PostRepository extends PagingAndSortingRepository<Post, Integer
             "WHERE YEAR(`time`) = :year GROUP BY `date` ORDER BY `date`", nativeQuery = true)
     List<PostsCountByDate> getPostsCountGroupByDays(@Param(value = "year") int year);
 
+
+    @Query(value = "SELECT COUNT(*) FROM blog.posts WHERE moderation_status = 'NEW' AND moderator_id IS NULL", nativeQuery = true)
+    int getPostsCountWaitingModeration();
+
+
     interface PostsCountByDate{
         LocalDate getDate();
         int getCount();

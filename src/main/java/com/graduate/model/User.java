@@ -36,7 +36,7 @@ public class User {
         this.id = id;
     }
 
-    public short getIsModerator() {
+    public byte getIsModerator() {
         return isModerator;
     }
 
