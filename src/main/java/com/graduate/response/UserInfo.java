@@ -9,7 +9,7 @@ public class UserInfo extends UserAbs {
     private boolean moderation;
     private int moderationCount;
         // TODO: 11.02.2021 set settings /api/auth/login   /api/auth/check
-    private boolean settings = false;
+    private boolean settings;
 
     public UserInfo(int id, String name, String photo, String email, boolean moderation, int moderationCount, boolean settings) {
         super(id, name);

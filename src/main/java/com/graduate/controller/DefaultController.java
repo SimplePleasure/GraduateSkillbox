@@ -15,11 +15,15 @@ public class DefaultController {
         return "index";
     }
 
+
+    //temporary templates
     @RequestMapping(value = "log", method = RequestMethod.GET)
-    public String getLoginForm() {//Model model) {
-//        model.addAttribute("title", "Login form");
+    public String getLoginForm() {
         return "loginForm";
     }
-
+    @RequestMapping(value = "restore", method = RequestMethod.GET)
+    public String restorePassword() {
+        return "restore";
+    }
 
 }

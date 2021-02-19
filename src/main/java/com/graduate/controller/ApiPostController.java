@@ -55,7 +55,7 @@ public class ApiPostController {
                                                              @RequestParam int limit, @RequestParam String status) {
         // TODO: 17.01.2021 implement receiving moderator_id (is the current user a moderator?)
         IResponse result = postService.getPostsByModerationStatus(offset, limit, status);
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body(result);
+        return ResponseEntity.status(HttpStatus.OK).body(result);
     }
 
     @RequestMapping(value = "/my", method = RequestMethod.GET, produces = "application/json")

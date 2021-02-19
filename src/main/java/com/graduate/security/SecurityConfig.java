@@ -11,16 +11,11 @@ import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 
-//@Configuration
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-//    private DataSource dataSource;
-//    public SecurityConfig(@Autowired DataSource dataSource) {
-//        this.dataSource = dataSource;
-//    }
-
     private CustomUserDetailService userDetailService;
+
     public SecurityConfig(@Autowired CustomUserDetailService userDetailService) {
         this.userDetailService = userDetailService;
     }
@@ -45,15 +40,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.authorizeRequests()
-                .antMatchers("/").permitAll()
-                .antMatchers("/test3").hasRole("1")
-                .antMatchers("/test2").authenticated()
-                .antMatchers("/test1").permitAll()
+                .antMatchers("/**").permitAll()
+                // TODO: 16.02.2021 add user access
                 .and().formLogin()
                 .loginPage("/log")
                 .loginProcessingUrl("/api/auth/login")
                 .usernameParameter("e_mail")
                 .passwordParameter("password")
                 .defaultSuccessUrl("/");
+//                .and().csrf().disable();
+                // TODO: 14.02.2021 for testing use csrf.and().csrf().disable() (authController edit consumes type)
     }
 }
