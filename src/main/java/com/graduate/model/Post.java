@@ -44,7 +44,7 @@ public class Post {
     // TODO: 12.01.2021 add synchronized methods
     @OneToMany(mappedBy = "post", fetch = FetchType.LAZY)
     private List<PostVotes> postVotes;
-    @OneToMany(mappedBy = "post", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "post", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<PostComments> postComments;
 
 
@@ -132,6 +132,12 @@ public class Post {
     }
     public void setPostComments(List<PostComments> postComments) {
         this.postComments = postComments;
+    }
+    public void addComment(PostComments comment) {
+        postComments.add(comment);
+    }
+    public void delComment(PostComments comment) {
+        postComments.remove(comment);
     }
 }
 

@@ -2,28 +2,29 @@ package com.graduate.service;
 
 import com.graduate.base.IResponse;
 import com.graduate.core.ComputePages;
-import com.graduate.model.Post;
-import com.graduate.model.PostRepository;
+import com.graduate.model.*;
+import com.graduate.request.AddComment;
 import com.graduate.response.PostInstance;
 import com.graduate.response.PostList;
 import com.graduate.response.PostsCountForCalendar;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
 public class PostService {
 
     private final PostRepository postRepository;
+    private final UserRepository userRepository;
 
-    public PostService(@Autowired PostRepository postRepository) {
+    public PostService(@Autowired PostRepository postRepository, @Autowired UserRepository userRepository) {
         this.postRepository = postRepository;
+        this.userRepository = userRepository;
     }
 
 
@@ -78,6 +79,7 @@ public class PostService {
 
     public IResponse getPostsByModerationStatus(int offset, int limit, String status) {
         // TODO: 17.01.2021 implement receiving moderator_id (add check is the current user a moderator?)
+
         int moderatorId = 1;
 
         int postsCount = postRepository.getPostsCountByModerationStatus(status, moderatorId);
@@ -122,9 +124,15 @@ public class PostService {
     }
 
     public IResponse getPostById(int postId) {
+        // TODO: 20.02.2021 increment post counter while viewer is not author or moderator
         // TODO: 29.01.2021 optional.map() throwing nullpointer?
         Optional<Post> optional = postRepository.findById(postId);
         return optional.map(PostInstance::new).orElse(null);
+    }
+
+    public Post getPostByIdOrThrow(int postId) {
+        Optional<Post> optional = postRepository.findById(postId);
+        return optional.orElseThrow(RuntimeException::new);
     }
 
     public IResponse getPostsCountByDate(int year) { // TODO: 02.02.2021 implement object return

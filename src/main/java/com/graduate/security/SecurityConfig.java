@@ -47,8 +47,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .loginProcessingUrl("/api/auth/login")
                 .usernameParameter("e_mail")
                 .passwordParameter("password")
-                .defaultSuccessUrl("/");
-//                .and().csrf().disable();
+                .defaultSuccessUrl("/")
+                .and().csrf().disable();
                 // TODO: 14.02.2021 for testing use csrf.and().csrf().disable() (authController edit consumes type)
     }
 }

@@ -2,10 +2,10 @@ package com.graduate.response;
 
 import com.graduate.base.IResponse;
 
-public class ActionResult implements IResponse {
-    private boolean result = false;
+public class ActionResultTemplate implements IResponse {
+    private boolean result;
 
-    public ActionResult(boolean result) {
+    public ActionResultTemplate(boolean result) {
         this.result = result;
     }
 

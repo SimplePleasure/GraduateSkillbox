@@ -6,15 +6,13 @@ import com.graduate.model.User;
 import com.graduate.model.UserRepository;
 import com.graduate.request.ChangePassword;
 import com.graduate.response.AuthCheck;
-import com.graduate.response.ActionResult;
+import com.graduate.response.ActionResultTemplate;
 import com.graduate.response.UserInfo;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -32,11 +30,10 @@ public class AuthService {
     }
 
     public IResponse checkAuth() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication instanceof AnonymousAuthenticationToken) {
-            return new ActionResult(false);
+        User user = getCurrentUserIfAuthenticated();
+        if (user == null) {
+            return new ActionResultTemplate(false);
         }
-        User user = userRepository.getUserByEmail(((UserDetails)authentication.getPrincipal()).getUsername());
         UserInfo userInfo = new UserInfo(user.getId(), user.getName(), user.getPhoto(), user.getEmail(),
                 user.getIsModerator() == 1, 0, user.getIsModerator() == 1);
         if (user.getIsModerator() == 1) {
@@ -52,9 +49,9 @@ public class AuthService {
             user.setCode(hash);
             userRepository.save(user);
             mailService.sendMessage(email, hash);
-            return new ActionResult(true);
+            return new ActionResultTemplate(true);
         }
-        return new ActionResult(false);
+        return new ActionResultTemplate(false);
     }
 
     public IResponse changePassword(ChangePassword changePassword) {
@@ -64,9 +61,18 @@ public class AuthService {
             user.setPassword(changePassword.getPassword());
             user.setCode(null);
             userRepository.save(user);
-            return new ActionResult(true);
+            return new ActionResultTemplate(true);
         }
-        return new ActionResult(false);
+        return new ActionResultTemplate(false);
     }
+
+    public User getCurrentUserIfAuthenticated() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication instanceof AnonymousAuthenticationToken) {
+            return null;
+        }
+        return userRepository.getUserByEmail(authentication.getName());
+    }
+
 
 }
