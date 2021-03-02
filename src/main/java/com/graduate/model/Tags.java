@@ -13,6 +13,12 @@ public class Tags {
     @NotNull
     private String name;
 
+    public Tags() {
+    }
+    public Tags(String name) {
+        this.name = name;
+    }
+
     public int getId() {
         return id;
     }

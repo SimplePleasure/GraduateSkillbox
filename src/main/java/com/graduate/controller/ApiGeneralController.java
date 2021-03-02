@@ -1,21 +1,20 @@
 package com.graduate.controller;
 
 import com.graduate.base.IResponse;
+import com.graduate.model.ModerationStatus;
 import com.graduate.model.Post;
-import com.graduate.model.PostComments;
 import com.graduate.model.User;
 import com.graduate.request.AddComment;
 import com.graduate.response.ActionResultTemplateWithErrors;
-import com.graduate.response.AddedComment;
 import com.graduate.response.BlogInformation;
 import com.graduate.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 
 @RequestMapping(value = "/api")
@@ -23,17 +22,17 @@ import java.time.LocalDateTime;
 public class ApiGeneralController {
     private final BlogInformation blogInformation;
 
-    private final SettingsService settings;
+    private final SettingsService settingsService;
     private final TagService tagService;
     private final PostService postService;
     private final AuthService authService;
     private final CommentService commentService;
 
-    public ApiGeneralController(@Autowired BlogInformation blogInformation, @Autowired SettingsService settings,
+    public ApiGeneralController(@Autowired BlogInformation blogInformation, @Autowired SettingsService settingsService,
                                 @Autowired TagService tagService, @Autowired PostService postService,
                                 @Autowired AuthService authService, @Autowired CommentService commentService) {
         this.blogInformation = blogInformation;
-        this.settings = settings;
+        this.settingsService = settingsService;
         this.tagService = tagService;
         this.postService = postService;
         this.authService = authService;
@@ -49,12 +48,11 @@ public class ApiGeneralController {
     }
 
     @GetMapping(value = "/settings", produces = "application/json")
-    private ResponseEntity<IResponse> getSettings() {
-        return ResponseEntity.status(HttpStatus.OK).body(settings.getGlobalSettings());
+    private ResponseEntity<IResponse> getSettingsService() {
+        return ResponseEntity.status(HttpStatus.OK).body(settingsService.getGlobalSettings());
     }
 
 
-    // TODO: 02.02.2021 Проверить приходит ли null значения
     @GetMapping(value = "/tag", produces = "application/json")
     private ResponseEntity<IResponse> getTags(@RequestParam(required = false, defaultValue = "") String query) {
         return ResponseEntity.status(HttpStatus.OK).body(tagService.getTagWeight(query));
@@ -70,21 +68,15 @@ public class ApiGeneralController {
 
     @PostMapping(value = "/comment", consumes = "application/json")
     private ResponseEntity<IResponse> comment(@RequestBody AddComment addComment) {
-        if (addComment.getText().length() < 5) {
-            ActionResultTemplateWithErrors response = new ActionResultTemplateWithErrors(false,
-                    "text", "Comment text too short");
-            return ResponseEntity.status(HttpStatus.OK).body(response);
-        }
-        try {
-            Post post = postService.getPostByIdOrThrow(addComment.getPostId());
-            User user = authService.getCurrentUserIfAuthenticated();
-            IResponse response = commentService.addComment(addComment, post, user);
+        Post post = postService.getPostByIdOrThrow(addComment.getPostId());
+        User user = authService.getCurrentUserOrThrow();
+        IResponse response = commentService.addComment(addComment, post, user);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
 
-            return ResponseEntity.status(HttpStatus.OK).body(response);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
-        }
-
+    @PostMapping(value = "/image", consumes = "multipart/form-data")
+    private String uploadImage(@RequestParam MultipartFile image) {
+        return authService.uploadImage(image);
     }
 
 }

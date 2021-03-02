@@ -40,7 +40,9 @@ public class User {
     public byte getIsModerator() {
         return isModerator;
     }
-
+    public boolean isModerator() {
+        return isModerator == 1;
+    }
     public void setIsModerator(byte isModerator) {
         this.isModerator = isModerator;
     }

@@ -2,29 +2,31 @@ package com.graduate.service;
 
 import com.graduate.base.IResponse;
 import com.graduate.core.ComputePages;
+import com.graduate.exceptionHandler.exceptions.PostNotFoundException;
+import com.graduate.exceptionHandler.exceptions.UnknownInputStatusException;
+import com.graduate.exceptionHandler.exceptions.UserNotAuthException;
 import com.graduate.model.*;
-import com.graduate.request.AddComment;
-import com.graduate.response.PostInstance;
-import com.graduate.response.PostList;
-import com.graduate.response.PostsCountForCalendar;
+import com.graduate.request.AddPost;
+import com.graduate.response.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.WebRequest;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class PostService {
 
     private final PostRepository postRepository;
-    private final UserRepository userRepository;
 
-    public PostService(@Autowired PostRepository postRepository, @Autowired UserRepository userRepository) {
+    public PostService(@Autowired PostRepository postRepository) {
         this.postRepository = postRepository;
-        this.userRepository = userRepository;
     }
 
 
@@ -69,7 +71,6 @@ public class PostService {
     }
 
     public IResponse getPostsByTag(int offset, int limit, String tag) {
-        // TODO: 08.02.2021 can use primitive type here?
         Integer postCount = postRepository.getPostsCountByTag(tag);
         List<Post> posts = postRepository.findPostsByTag(
                 PageRequest.of(ComputePages.computePage(offset, limit), limit), tag);
@@ -77,23 +78,25 @@ public class PostService {
         return new PostList(postCount, posts);
     }
 
-    public IResponse getPostsByModerationStatus(int offset, int limit, String status) {
-        // TODO: 17.01.2021 implement receiving moderator_id (add check is the current user a moderator?)
-
-        int moderatorId = 1;
-
-        int postsCount = postRepository.getPostsCountByModerationStatus(status, moderatorId);
-        List<Post> posts = postRepository.findPostsByModerationStatus(
-                PageRequest.of(ComputePages.computePage(offset, limit), limit), status, moderatorId);
-        return new PostList(postsCount, posts);
+    public IResponse getPostsByModerationStatus(int offset, int limit, String status, int moderatorId, WebRequest request) {
+        if (request.isUserInRole("1")) {
+            int postsCount = postRepository.getPostsCountByModerationStatus(status, moderatorId);
+            List<Post> posts = postRepository.findPostsByModerationStatus(
+                    PageRequest.of(ComputePages.computePage(offset, limit), limit), status, moderatorId);
+            System.err.println(postsCount);
+            System.err.println(posts.size());
+            return new PostList(postsCount, posts);
+        }
+        return new PostList(0, Collections.emptyList());
     }
 
 
-    public IResponse getMyPosts(int offset, int limit, String status) {
-        int userId = 1; // TODO: 17.01.2021 implement receiving user_id (is the user has auth)
+    public IResponse getMyPosts(int offset, int limit, String status, int userId) {
+//        if (userId == 0) { // TODO: 02.03.2021 implement this check with spring access
+//            throw new UserNotAuthException("executing action required auth");  // TODO: 02.03.2021 implement receiving msg from separate file
+//        }
         int isActive;
         String moderationStatus;
-
         switch(status) {
             case "inactive":
                 isActive = 0;
@@ -112,9 +115,7 @@ public class PostService {
                 moderationStatus = "ACCEPTED";
                 break;
             default:
-                // TODO: 19.01.2021 implement throw illegal state exception?
-                isActive = 0;
-                moderationStatus = null;
+                throw new UnknownInputStatusException("unknown incoming status ");
         }
 
         int postsCount = postRepository.getMyPostsCount(userId, isActive, moderationStatus);
@@ -123,19 +124,21 @@ public class PostService {
         return new PostList(postsCount, posts);
     }
 
-    public IResponse getPostById(int postId) {
-        // TODO: 20.02.2021 increment post counter while viewer is not author or moderator
-        // TODO: 29.01.2021 optional.map() throwing nullpointer?
-        Optional<Post> optional = postRepository.findById(postId);
-        return optional.map(PostInstance::new).orElse(null);
+    public IResponse getPostInstanceOrThrow(int postId, int viewerId, WebRequest request) {
+        Post post = postRepository.findById(postId).orElseThrow(PostNotFoundException::new);
+        if (!request.isUserInRole("1") || post.getUser().getId() != viewerId) {
+            post.setViewCount(post.getViewCount() + 1);
+            postRepository.save(post);
+        }
+        return new PostInstance(post);
     }
 
     public Post getPostByIdOrThrow(int postId) {
         Optional<Post> optional = postRepository.findById(postId);
-        return optional.orElseThrow(RuntimeException::new);
+        return optional.orElseThrow(PostNotFoundException::new);
     }
 
-    public IResponse getPostsCountByDate(int year) { // TODO: 02.02.2021 implement object return
+    public IResponse getPostsCountByDate(int year) {
         List<Integer> yearsWithPosts = postRepository.getYearsWherePostExists();
         List<PostRepository.PostsCountByDate> postsCount = postRepository.getPostsCountGroupByDays(year);
         Map<LocalDate, Integer> postsCountByDate = new HashMap<>();
@@ -143,5 +146,31 @@ public class PostService {
         postsCount.forEach(v -> postsCountByDate.put(v.getDate(), v.getCount()));
         return new PostsCountForCalendar(yearsWithPosts, postsCountByDate);
     }
+
+    public IResponse addPost(AddPost addPost, User user) {
+        if (addPost.getTitle().length() < 3 || addPost.getText().length() < 50) {
+            ActionResultTemplateWithErrors result = new ActionResultTemplateWithErrors(false);
+            if (addPost.getTitle().length() < 3) {
+                result.addError("title", "title is too short");
+            }
+            if (addPost.getText().length() < 50) {
+                result.addError("text", "text is too short");
+            }
+            return result;
+        }
+
+        Post post = new Post(addPost.getActive(), ModerationStatus.NEW, addPost.getTimestamp(), addPost.getText(), addPost.getTitle(), user);
+        List<Tags> tags = addPost.getTags().stream().map(Tags::new).collect(Collectors.toList());
+        post.setTags(tags);
+        postRepository.save(post);
+
+        return new ActionResultTemplate(true);
+    }
+
+    public int getPostsCountWaitingModeration() {
+        return postRepository.getPostsCountWaitingModeration();
+    }
+
+
 
 }

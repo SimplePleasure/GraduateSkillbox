@@ -3,7 +3,7 @@ package com.graduate.request;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.stereotype.Component;
 
-
+// TODO: 22.02.2021 Нужно ли аннотация component?
 @Component
 public class ChangePassword {
 

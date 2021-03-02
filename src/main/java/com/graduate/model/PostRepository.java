@@ -76,8 +76,6 @@ public interface PostRepository extends PagingAndSortingRepository<Post, Integer
 
 
 
-//      TODO: 18.01.2021 Method don't finish. Required auth.
-//      TODO: 16.01.2021 Посты со статусами accepted и declined должны выводится в соответствии с id модератора
     @Query(value = "SELECT COUNT(*) FROM blog.posts WHERE is_active = 1 AND moderation_status LIKE :status AND " +
             "(moderator_id = :moderatorId OR moderator_id IS NULL)", nativeQuery = true)
     int getPostsCountByModerationStatus(@Param(value = "status") String status,
@@ -89,7 +87,6 @@ public interface PostRepository extends PagingAndSortingRepository<Post, Integer
                                            @Param(value = "id") int moderatorId);
 
 
-//      TODO: 18.01.2021 Method don't finish. Required auth.
     @Query(value = "SELECT COUNT(*) FROM blog.posts p " +
             "WHERE user_id = :id AND is_active = :isActive AND moderation_status = :status", nativeQuery = true)
     int getMyPostsCount(@Param(value = "id") int userId, @Param(value = "isActive") int isActive,
@@ -111,11 +108,11 @@ public interface PostRepository extends PagingAndSortingRepository<Post, Integer
     List<PostsCountByDate> getPostsCountGroupByDays(@Param(value = "year") int year);
 
 
-    @Query(value = "SELECT COUNT(*) FROM blog.posts WHERE moderation_status = 'NEW' AND moderator_id IS NULL", nativeQuery = true)
+    @Query(value = "SELECT COUNT(*) FROM blog.posts WHERE is_active = 1 AND moderation_status = 'NEW' AND moderator_id IS NULL", nativeQuery = true)
     int getPostsCountWaitingModeration();
 
 
-    interface PostsCountByDate{
+    interface PostsCountByDate {
         LocalDate getDate();
         int getCount();
     }

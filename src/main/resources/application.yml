@@ -9,6 +9,7 @@ spring:
     show-sql: true
     hibernate:
       ddl-auto: none
+  static-locations: file:./src/main/resources/upload
 
 blog:
   information:
@@ -22,3 +23,7 @@ blog:
 mail:
   login: blogengineskillbox2@gmail.com
   password: aSwDxEqDcXzAsEwQd
+
+project:
+  uploads-directory: ./src/main/resources/upload/
+  uploads-max-size: 512

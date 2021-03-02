@@ -10,16 +10,14 @@ public class ActionResultTemplateWithErrors implements IResponse {
     private boolean result;
     private Map<String, String> errors;
 
-    public ActionResultTemplateWithErrors(boolean result, String key, String val) {
+    public ActionResultTemplateWithErrors(boolean result) {
         this.result = result;
-        this.errors = new HashMap<>();
-        errors.put(key, val);
+        errors = new HashMap<>();
     }
 
     public void addError(String key, String val) {
         errors.put(key, val);
     }
-
     public boolean isResult() {
         return result;
     }

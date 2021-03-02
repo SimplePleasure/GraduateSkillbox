@@ -4,6 +4,7 @@ import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "posts")
@@ -19,8 +20,6 @@ public class Post {
     @Enumerated(EnumType.STRING)
     @Column(name = "moderation_status", columnDefinition = "enum('NEW', 'ACCEPTED', 'DECLINED')")
     private ModerationStatus moderationStatus;
-
-    // TODO: 10.01.2021 in db this field marks not null
     @Column(name = "moderator_id")
     private Integer moderatorId;
     @NotNull
@@ -32,21 +31,31 @@ public class Post {
     @NotNull
     @Column(name = "view_count")
     private int viewCount;
-
-
+    @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(name = "Tag2Post", joinColumns = {@JoinColumn(name = "post_id")}, inverseJoinColumns = {@JoinColumn(name = "tag_id")})
-    List<Tags> tags;
 
+
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinTable(name = "Tag2Post", joinColumns = {@JoinColumn(name = "post_id")}, inverseJoinColumns = {@JoinColumn(name = "tag_id")})
+    private List<Tags> tags;
     // TODO: 12.01.2021 add synchronized methods
     @OneToMany(mappedBy = "post", fetch = FetchType.LAZY)
     private List<PostVotes> postVotes;
     @OneToMany(mappedBy = "post", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<PostComments> postComments;
 
+    public Post() {}
+    public Post(byte isActive, ModerationStatus moderationStatus, LocalDateTime time, String text, String title, User user) {
+        this.isActive = isActive;
+        this.moderationStatus = moderationStatus;
+        this.time = time;
+        this.text = text;
+        this.title = title;
+        this.user = user;
+        viewCount = 0;
+    }
 
     public int getId() {
         return id;

@@ -1,7 +1,9 @@
 package com.graduate.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.springframework.stereotype.Component;
 
+@Component
 public class AddComment {
 
     @JsonProperty("parent_id")

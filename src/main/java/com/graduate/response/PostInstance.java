@@ -24,6 +24,12 @@ public class PostInstance extends PostAbs implements IResponse {
         tags = post.getTags().stream().map(Tags::getName).collect(Collectors.toList());
     }
 
+    public String getText() {
+        return text;
+    }
+    public void setText(String text) {
+        this.text = text;
+    }
     public boolean isActive() {
         return active;
     }
