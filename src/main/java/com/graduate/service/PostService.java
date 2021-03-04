@@ -2,6 +2,7 @@ package com.graduate.service;
 
 import com.graduate.base.IResponse;
 import com.graduate.core.ComputePages;
+import com.graduate.core.ResponseFormer;
 import com.graduate.exceptionHandler.exceptions.PostNotFoundException;
 import com.graduate.exceptionHandler.exceptions.UnknownInputStatusException;
 import com.graduate.exceptionHandler.exceptions.UserNotAuthException;
@@ -10,8 +11,6 @@ import com.graduate.request.AddPost;
 import com.graduate.response.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.WebRequest;
@@ -148,22 +147,13 @@ public class PostService {
     }
 
     public IResponse addPost(AddPost addPost, User user) {
-        if (addPost.getTitle().length() < 3 || addPost.getText().length() < 50) {
-            ActionResultTemplateWithErrors result = new ActionResultTemplateWithErrors(false);
-            if (addPost.getTitle().length() < 3) {
-                result.addError("title", "title is too short");
-            }
-            if (addPost.getText().length() < 50) {
-                result.addError("text", "text is too short");
-            }
-            return result;
+        if (addPost.isTextTooShort() || addPost.isTitleTooShort()) {
+            return ResponseFormer.getErrResponseFromPost(addPost);
         }
-
         Post post = new Post(addPost.getActive(), ModerationStatus.NEW, addPost.getTimestamp(), addPost.getText(), addPost.getTitle(), user);
         List<Tags> tags = addPost.getTags().stream().map(Tags::new).collect(Collectors.toList());
         post.setTags(tags);
         postRepository.save(post);
-
         return new ActionResultTemplate(true);
     }
 
@@ -171,6 +161,26 @@ public class PostService {
         return postRepository.getPostsCountWaitingModeration();
     }
 
+    public IResponse editPost(AddPost addPost, int postId, WebRequest request) {
+        if (addPost.isTitleTooShort() || addPost.isTextTooShort()) {
+            return ResponseFormer.getErrResponseFromPost(addPost);
+        }
+        String currentEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        Post post = postRepository.findById(postId).orElseThrow(PostNotFoundException::new);
+        if (post.getUser().getEmail().equals(currentEmail) || request.isUserInRole("1")) {
+            post.setTags(addPost.getTags().stream().map(Tags::new).collect(Collectors.toList()));
+            post.setTitle(addPost.getTitle());
+            post.setText(addPost.getText());
+            post.setIsActive(addPost.getActive());
+            post.setTime(addPost.getTimestamp());
+            if (!request.isUserInRole("1")) {
+                post.setModerationStatus(ModerationStatus.NEW);
+            }
+            postRepository.save(post);
+            return new ActionResultTemplate(true);
+        }
+        throw new UserNotAuthException("this user can't edit this post");
+    }
 
 
 }

@@ -7,9 +7,11 @@ import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 
-// TODO: 22.02.2021 Нужно ли аннотация component?
 @Component
 public class AddPost {
+
+    private final static int MIN_TITLE_LENGTH = 3;
+    private final static int MIN_TEXT_LENGTH = 50;
 
     private LocalDateTime timestamp;
     private byte active;
@@ -31,7 +33,6 @@ public class AddPost {
             this.timestamp = publishedTime;
         }
     }
-
     public byte getActive() {
         return active;
     }
@@ -56,4 +57,12 @@ public class AddPost {
     public void setText(String text) {
         this.text = text;
     }
+    public boolean isTitleTooShort() {
+        return title.length() < MIN_TITLE_LENGTH;
+    }
+    public boolean isTextTooShort() {
+        return text.length() < MIN_TEXT_LENGTH;
+    }
+
+
 }

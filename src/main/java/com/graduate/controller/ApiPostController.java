@@ -57,6 +57,7 @@ public class ApiPostController {
                                                                     @RequestParam String status, WebRequest request) {
         IResponse result = postService.getPostsByModerationStatus(offset, limit, status,
                                                     authService.getUserIdOrZero(), request);
+        // TODO: 04.03.2021 after adding spring security access set getUserIdOrZero as getUserId
         return ResponseEntity.status(HttpStatus.OK).body(result);
     }
 
@@ -77,6 +78,12 @@ public class ApiPostController {
     @RequestMapping(method = RequestMethod.POST, consumes = "application/json", produces = "application/json")
     public ResponseEntity<IResponse> addPost(@RequestBody AddPost addPost) {
         IResponse result = postService.addPost(addPost, authService.getCurrentUserOrThrow());
+        return ResponseEntity.status(HttpStatus.OK).body(result);
+    }
+
+    @RequestMapping(value = "/{id}", method = RequestMethod.PUT, consumes = "application/json", produces = "application/json")
+    public ResponseEntity<IResponse> editPost(@PathVariable int id, @RequestBody AddPost addPost, WebRequest request) {
+        IResponse result = postService.editPost(addPost, id, request);
         return ResponseEntity.status(HttpStatus.OK).body(result);
     }
 

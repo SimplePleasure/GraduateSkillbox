@@ -12,10 +12,13 @@ import com.graduate.response.UserInfo;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.DigestUtils;
+import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -23,6 +26,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Objects;
+import java.util.UUID;
 
 @Service
 public class AuthService {
@@ -67,9 +72,10 @@ public class AuthService {
     }
 
     public IResponse restorePassword(String email) {
+        // FIXME: 03.03.2021 use UUID instead DigestUtils.
         User user = userRepository.getUserByEmail(email);
         if (user != null) {
-            String hash = DigestUtils.md5Hex(user.toString());
+            String hash = UUID.randomUUID().toString().replaceAll("-", "");
             user.setCode(hash);
             userRepository.save(user);
             mailService.sendMessage(email, hash);
@@ -94,19 +100,25 @@ public class AuthService {
     }
 
     public String uploadImage(MultipartFile image) {
-        User user = getCurrentUserOrThrow();
-        String imgHash = String.valueOf(image.hashCode());
-        String generatedPath = imgHash.substring(0, 3) + "/" + imgHash.substring(3, 6) + "/" + imgHash.substring(6, 9) + "/";
-
         try {
-            new File(UPLOADS + generatedPath).mkdirs();
-            Files.write(Path.of(UPLOADS + generatedPath + image.getOriginalFilename()), image.getBytes());
+            if (!image.isEmpty() &&
+                    (Objects.requireNonNull(image.getContentType()).equalsIgnoreCase(MediaType.IMAGE_PNG_VALUE) ||
+                            image.getContentType().equalsIgnoreCase(MediaType.IMAGE_JPEG_VALUE))) {
+                User user = getCurrentUserOrThrow();
+                String randomString = UUID.randomUUID().toString().replaceAll("-", "");
+                String generatedPath = randomString.substring(0, 5) + "/" +
+                        randomString.substring(5, 10) + "/" + randomString.substring(10, 15) + "/";
+                new File(UPLOADS + generatedPath).mkdirs();
+                Files.write(Path.of(UPLOADS + generatedPath + image.getOriginalFilename()), image.getBytes());
+                user.setPhoto(UPLOADS_FOLDER + generatedPath + image.getOriginalFilename());
+                userRepository.save(user);
+                return user.getPhoto();
+            }
+            throw new MultipartException("file extension must be jpg/png");
         } catch (IOException e) {
-            throw new MultipartException("was a problem while file saving");
+            throw new MultipartException("was a problem while file saving. " + e.getMessage());
         }
-        user.setPhoto(UPLOADS_FOLDER + generatedPath + image.getOriginalFilename());
-        user = userRepository.save(user);
-        return user.getPhoto();
+
     }
 
 }

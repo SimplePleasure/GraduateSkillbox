@@ -20,7 +20,6 @@ public class ImgConfiguration {
 
     @Bean
     public MultipartConfigElement getMultipartConfigElement() {
-        System.out.println("IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII " + maxFileSize);
         MultipartConfigFactory factory = new MultipartConfigFactory();
         factory.setMaxFileSize(DataSize.ofKilobytes(maxFileSize));
         factory.setMaxRequestSize(DataSize.ofKilobytes(maxFileSize));
