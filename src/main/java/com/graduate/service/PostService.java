@@ -168,7 +168,7 @@ public class PostService {
         String currentEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Post post = postRepository.findById(postId).orElseThrow(PostNotFoundException::new);
         if (post.getUser().getEmail().equals(currentEmail) || request.isUserInRole("1")) {
-            post.setTags(addPost.getTags().stream().map(Tags::new).collect(Collectors.toList()));
+            post.addTags(addPost.getTags().stream().map(Tags::new).collect(Collectors.toList()));
             post.setTitle(addPost.getTitle());
             post.setText(addPost.getText());
             post.setIsActive(addPost.getActive());

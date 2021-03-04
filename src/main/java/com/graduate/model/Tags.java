@@ -1,6 +1,5 @@
 package com.graduate.model;
 
-import org.hibernate.validator.constraints.UniqueElements;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -35,5 +34,16 @@ public class Tags {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    @Override
+    public int hashCode() {
+        return name.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        Tags tag = (Tags) obj;
+        return name.equals(tag.name);
     }
 }

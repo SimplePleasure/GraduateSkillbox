@@ -41,9 +41,9 @@ public class Post {
     @JoinTable(name = "Tag2Post", joinColumns = {@JoinColumn(name = "post_id")}, inverseJoinColumns = {@JoinColumn(name = "tag_id")})
     private List<Tags> tags;
     // TODO: 12.01.2021 add synchronized methods
-    @OneToMany(mappedBy = "post", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "post", fetch = FetchType.LAZY, orphanRemoval = true)
     private List<PostVotes> postVotes;
-    @OneToMany(mappedBy = "post", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "post", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PostComments> postComments;
 
     public Post() {}
@@ -123,12 +123,14 @@ public class Post {
     public List<Tags> getTags() {
         return tags;
     }
-
     public void setTags(List<Tags> tags) {
         this.tags = tags;
     }
+    public void addTags(List<Tags> tagList) {
+        tagList.stream().filter(x -> !tags.contains(x)).forEach(x -> tags.add(x));
+    }
 
-    // TODO: 09.01.2021 add one to many synchronized methods!
+
     public List<PostVotes> getPostVotes() {
         return postVotes;
     }

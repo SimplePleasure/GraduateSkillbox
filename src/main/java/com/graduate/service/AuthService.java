@@ -9,7 +9,6 @@ import com.graduate.response.ActionResultTemplateWithErrors;
 import com.graduate.response.AuthCheck;
 import com.graduate.response.ActionResultTemplate;
 import com.graduate.response.UserInfo;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -17,8 +16,6 @@ import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.util.DigestUtils;
-import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -72,7 +69,6 @@ public class AuthService {
     }
 
     public IResponse restorePassword(String email) {
-        // FIXME: 03.03.2021 use UUID instead DigestUtils.
         User user = userRepository.getUserByEmail(email);
         if (user != null) {
             String hash = UUID.randomUUID().toString().replaceAll("-", "");
