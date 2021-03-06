@@ -27,3 +27,5 @@ mail:
 project:
   uploads-directory: ./src/main/resources/upload/
   uploads-max-size: 512
+  captcha-type: data:image/png;base64,
+  captcha-life-cycle-in-minutes: 20

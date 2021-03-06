@@ -91,9 +91,6 @@ public class PostService {
 
 
     public IResponse getMyPosts(int offset, int limit, String status, int userId) {
-//        if (userId == 0) { // TODO: 02.03.2021 implement this check with spring access
-//            throw new UserNotAuthException("executing action required auth");  // TODO: 02.03.2021 implement receiving msg from separate file
-//        }
         int isActive;
         String moderationStatus;
         switch(status) {
@@ -116,7 +113,6 @@ public class PostService {
             default:
                 throw new UnknownInputStatusException("unknown incoming status ");
         }
-
         int postsCount = postRepository.getMyPostsCount(userId, isActive, moderationStatus);
         List<Post> posts = postRepository.findMyPosts(PageRequest.of(ComputePages.computePage(offset, limit), limit),
                 userId, isActive, moderationStatus);
@@ -148,7 +144,7 @@ public class PostService {
 
     public IResponse addPost(AddPost addPost, User user) {
         if (addPost.isTextTooShort() || addPost.isTitleTooShort()) {
-            return ResponseFormer.getErrResponseFromPost(addPost);
+            return ResponseFormer.getErrResponseFromPost(addPost.isTextTooShort(), addPost.isTitleTooShort());
         }
         Post post = new Post(addPost.getActive(), ModerationStatus.NEW, addPost.getTimestamp(), addPost.getText(), addPost.getTitle(), user);
         List<Tags> tags = addPost.getTags().stream().map(Tags::new).collect(Collectors.toList());
@@ -161,14 +157,16 @@ public class PostService {
         return postRepository.getPostsCountWaitingModeration();
     }
 
+
+    // TODO: 05.03.2021 implement sync methods for tags & remove orphan tag
     public IResponse editPost(AddPost addPost, int postId, WebRequest request) {
         if (addPost.isTitleTooShort() || addPost.isTextTooShort()) {
-            return ResponseFormer.getErrResponseFromPost(addPost);
+            return ResponseFormer.getErrResponseFromPost(addPost.isTextTooShort(), addPost.isTitleTooShort());
         }
         String currentEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Post post = postRepository.findById(postId).orElseThrow(PostNotFoundException::new);
         if (post.getUser().getEmail().equals(currentEmail) || request.isUserInRole("1")) {
-            post.addTags(addPost.getTags().stream().map(Tags::new).collect(Collectors.toList()));
+            post.setTags(addPost.getTags().stream().map(Tags::new).collect(Collectors.toList()));
             post.setTitle(addPost.getTitle());
             post.setText(addPost.getText());
             post.setIsActive(addPost.getActive());

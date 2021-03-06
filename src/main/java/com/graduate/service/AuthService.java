@@ -1,14 +1,19 @@
 package com.graduate.service;
 
+import com.github.cage.Cage;
+import com.github.cage.GCage;
 import com.graduate.base.IResponse;
+import com.graduate.core.CaptchaResizer;
+import com.graduate.core.ResponseFormer;
+import com.graduate.exceptionHandler.exceptions.CaptchaNotFoundException;
 import com.graduate.exceptionHandler.exceptions.UserNotAuthException;
+import com.graduate.model.CaptchaCode;
+import com.graduate.model.CaptchaCodeRepository;
 import com.graduate.model.User;
 import com.graduate.model.UserRepository;
 import com.graduate.request.ChangePassword;
-import com.graduate.response.ActionResultTemplateWithErrors;
-import com.graduate.response.AuthCheck;
-import com.graduate.response.ActionResultTemplate;
-import com.graduate.response.UserInfo;
+import com.graduate.request.Register;
+import com.graduate.response.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -23,6 +28,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -31,15 +38,23 @@ public class AuthService {
 
     @Value("${project.uploads-directory}")
     private String UPLOADS;
-    private String UPLOADS_FOLDER = "upload/";
+    @Value("${project.captcha-type}")
+    private String captchaType;
+    @Value("${project.captcha-life-cycle-in-minutes}")
+    private String captchaLifeCycleInMinutes;
 
-    private final UserRepository userRepository;
     private final MailService mailService;
+    private final UserRepository userRepository;
+    private final CaptchaCodeRepository captchaCodeRepository;
 
-    public AuthService(@Autowired UserRepository userRepository, @Autowired MailService mailService) {
+    public AuthService(@Autowired UserRepository userRepository, @Autowired MailService mailService,
+                       @Autowired CaptchaCodeRepository captchaCodeRepository) {
         this.userRepository = userRepository;
         this.mailService = mailService;
+        this.captchaCodeRepository = captchaCodeRepository;
     }
+
+
 
     public IResponse checkAuth(int postsCountWaitingModeration) {
         if (!isUserAuth()) {
@@ -53,7 +68,7 @@ public class AuthService {
 
     public User getCurrentUserOrThrow() {
         if (!isUserAuth()) {
-            throw new UserNotAuthException("executing action required auth"); // TODO: 02.03.2021 implement receiving text from separate file
+            throw new UserNotAuthException("executing action required auth");
         }
         return userRepository.getUserByEmail(SecurityContextHolder.getContext().getAuthentication().getName());
     }
@@ -74,7 +89,7 @@ public class AuthService {
             String hash = UUID.randomUUID().toString().replaceAll("-", "");
             user.setCode(hash);
             userRepository.save(user);
-            mailService.sendMessage(email, hash);
+            mailService.sendPassRecoveryMessage(email, hash); // FIXME: 06.03.2021 edit send link
             return new ActionResultTemplate(true);
         }
         return new ActionResultTemplate(false);
@@ -106,6 +121,7 @@ public class AuthService {
                         randomString.substring(5, 10) + "/" + randomString.substring(10, 15) + "/";
                 new File(UPLOADS + generatedPath).mkdirs();
                 Files.write(Path.of(UPLOADS + generatedPath + image.getOriginalFilename()), image.getBytes());
+                String UPLOADS_FOLDER = "upload/";
                 user.setPhoto(UPLOADS_FOLDER + generatedPath + image.getOriginalFilename());
                 userRepository.save(user);
                 return user.getPhoto();
@@ -115,6 +131,48 @@ public class AuthService {
             throw new MultipartException("was a problem while file saving. " + e.getMessage());
         }
 
+    }
+
+    public IResponse register(Register register) { // TODO: 05.03.2021 implement method
+        CaptchaCode captcha = captchaCodeRepository.getCaptchaBySecretCode(register.getCaptchaSecret())
+                .orElseThrow(CaptchaNotFoundException::new); // TODO: 06.03.2021 not handling exception
+
+        boolean isPasswordLengthCorrect = register.getPassword().length() > 5;
+        boolean isEmailAddressIsFree = !userRepository.isEmailAlreadyExists(register.getEmail());
+        boolean isCaptchaCodeCorrect = register.getCaptcha().equals(captcha.getCode());
+        boolean isCaptchaTimeCorrect = captcha.getTime().isAfter(LocalDateTime.now());
+
+        if (isPasswordLengthCorrect && isEmailAddressIsFree && isCaptchaCodeCorrect && isCaptchaTimeCorrect) {
+            User user = new User();
+            user.setEmail(register.getEmail());
+            user.setName(register.getName());
+            user.setPassword(register.getPassword());
+            user.setIsModerator((byte) 0);
+            user.setRegTime(LocalDateTime.now());
+            userRepository.save(user);
+            mailService.sayHiMessage(user.getEmail());
+            return new ActionResultTemplate(true);
+        }
+        return ResponseFormer.getErrFromRegister(isPasswordLengthCorrect,
+                isEmailAddressIsFree, isCaptchaCodeCorrect, isCaptchaTimeCorrect);
+    }
+
+    public IResponse generateCaptcha() {
+        Cage cage = new GCage();
+        String secretCode = UUID.randomUUID().toString().substring(0, 12);
+        String generatedCode = cage.getTokenGenerator().next();
+
+//        byte[] generatedImg = cage.draw(generatedCode);
+        byte[] generatedImg = CaptchaResizer.resizeCaptcha(70, 35, cage.drawImage(generatedCode));
+        String generatedCaptcha = captchaType + Base64.getEncoder().encodeToString(generatedImg);
+
+        LocalDateTime validTo = LocalDateTime.now().plusMinutes(Integer.parseInt(captchaLifeCycleInMinutes));
+        CaptchaCode code = new CaptchaCode();
+        code.setSecretCode(secretCode);
+        code.setCode(generatedCode);
+        code.setTime(validTo);
+        captchaCodeRepository.save(code);
+        return new CaptchaCheck(secretCode, generatedCaptcha);
     }
 
 }

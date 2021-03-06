@@ -1,10 +1,7 @@
 package com.graduate.exceptionHandler;
 
 import com.graduate.base.IResponse;
-import com.graduate.exceptionHandler.exceptions.ComponentNotFoundException;
-import com.graduate.exceptionHandler.exceptions.PostNotFoundException;
-import com.graduate.exceptionHandler.exceptions.UnknownInputStatusException;
-import com.graduate.exceptionHandler.exceptions.UserNotAuthException;
+import com.graduate.exceptionHandler.exceptions.*;
 import com.graduate.response.ActionResultTemplate;
 import com.graduate.response.ActionResultTemplateWithErrors;
 import org.springframework.http.HttpHeaders;
@@ -20,7 +17,7 @@ public class GlobalExceptionHandler {
 
 
     @ExceptionHandler({UserNotAuthException.class, MultipartException.class, PostNotFoundException.class,
-            UnknownInputStatusException.class, ComponentNotFoundException.class})
+            UnknownInputStatusException.class, ComponentNotFoundException.class, CaptchaNotFoundException.class})
     public ResponseEntity<IResponse> handleException (Exception ex, WebRequest request) {
 
         HttpHeaders headers = new HttpHeaders();
@@ -45,11 +42,22 @@ public class GlobalExceptionHandler {
             ComponentNotFoundException e = (ComponentNotFoundException) ex;
             HttpStatus status = HttpStatus.NOT_FOUND;
             return handleComponentNotFoundException(e, headers, status, request);
+        }else if (ex instanceof CaptchaNotFoundException) {
+            CaptchaNotFoundException e = (CaptchaNotFoundException) ex;
+            HttpStatus status = HttpStatus.NOT_FOUND;
+            return handleCaptchaNotFoundException(e, headers, status, request);
         } else {
             ActionResultTemplateWithErrors err = new ActionResultTemplateWithErrors(false);
             err.addError("server", "unprocessed exception");
             return mainHandler(ex, err, headers, HttpStatus.INTERNAL_SERVER_ERROR, request);
         }
+    }
+
+    private ResponseEntity<IResponse> handleCaptchaNotFoundException (CaptchaNotFoundException ex, HttpHeaders headers,
+                                                                        HttpStatus status, WebRequest request) {
+        ActionResultTemplateWithErrors result = new ActionResultTemplateWithErrors(false);
+        result.addError("captcha", "requested captcha doesn't exists");
+        return mainHandler(ex, result, headers, status, request);
     }
 
     private ResponseEntity<IResponse> handleComponentNotFoundException (ComponentNotFoundException ex, HttpHeaders headers,

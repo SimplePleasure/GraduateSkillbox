@@ -15,6 +15,10 @@ public class SettingsService {
 
     // TODO: 31.01.2021 implement receive settings from repository
     public GlobalSettings getGlobalSettings() {
-        return new GlobalSettings();
+        GlobalSettings gs = new GlobalSettings();
+        gs.setMultiUserMode(true);
+        gs.setPostPremoderation(true);
+        gs.setStatisticsIsPublic(true);
+        return gs;
     }
 }

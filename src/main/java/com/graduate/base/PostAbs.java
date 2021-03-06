@@ -3,6 +3,9 @@ package com.graduate.base;
 import com.graduate.model.Post;
 import com.graduate.response.UserSimplify;
 
+import java.time.Instant;
+import java.util.Date;
+
 public abstract class PostAbs {
 
 

@@ -1,7 +1,6 @@
 package com.graduate.base;
 
 public abstract class UserAbs {
-    // TODO: 29.01.2021 Is it necessary to extends ResponseAbs?
 
     private int id;
     private String name;

@@ -37,10 +37,11 @@ public class Post {
     private User user;
 
 
+    // TODO: 12.01.2021 add synchronized methods
     @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinTable(name = "Tag2Post", joinColumns = {@JoinColumn(name = "post_id")}, inverseJoinColumns = {@JoinColumn(name = "tag_id")})
     private List<Tags> tags;
-    // TODO: 12.01.2021 add synchronized methods
+
     @OneToMany(mappedBy = "post", fetch = FetchType.LAZY, orphanRemoval = true)
     private List<PostVotes> postVotes;
     @OneToMany(mappedBy = "post", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
@@ -129,6 +130,7 @@ public class Post {
     public void addTags(List<Tags> tagList) {
         tagList.stream().filter(x -> !tags.contains(x)).forEach(x -> tags.add(x));
     }
+    // TODO: 04.03.2021 implement tag remove
 
 
     public List<PostVotes> getPostVotes() {
