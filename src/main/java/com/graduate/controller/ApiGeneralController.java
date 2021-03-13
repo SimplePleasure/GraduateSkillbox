@@ -1,20 +1,24 @@
 package com.graduate.controller;
 
 import com.graduate.base.IResponse;
-import com.graduate.model.ModerationStatus;
+import com.graduate.exceptionHandler.exceptions.UserNotAuthException;
 import com.graduate.model.Post;
 import com.graduate.model.User;
 import com.graduate.request.AddComment;
-import com.graduate.response.ActionResultTemplateWithErrors;
+import com.graduate.request.Moderation;
+import com.graduate.request.Profile;
+import com.graduate.request.Settings;
 import com.graduate.response.BlogInformation;
 import com.graduate.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
+import java.util.Map;
 
 
 @RequestMapping(value = "/api")
@@ -40,18 +44,20 @@ public class ApiGeneralController {
     }
 
 
-
-
     @GetMapping(value = "/init", produces = "application/json")
     private ResponseEntity<IResponse> getMainInformation() {
         return ResponseEntity.status(HttpStatus.OK).body(blogInformation);
     }
 
     @GetMapping(value = "/settings", produces = "application/json")
-    private ResponseEntity<IResponse> getSettingsService() {
+    private ResponseEntity<Map<String, Boolean>> getSettingsService() {
         return ResponseEntity.status(HttpStatus.OK).body(settingsService.getGlobalSettings());
     }
 
+    @PutMapping(value = "/settings", consumes = "application/json")
+    private void saveSettings(@RequestBody Settings settings, WebRequest request) {
+        settingsService.setSettings(settings, request);
+    }
 
     @GetMapping(value = "/tag", produces = "application/json")
     private ResponseEntity<IResponse> getTags(@RequestParam(required = false, defaultValue = "") String query) {
@@ -79,4 +85,42 @@ public class ApiGeneralController {
         return authService.uploadImage(image);
     }
 
+    @GetMapping(value = "/statistics/my", produces = "application/json")
+    private ResponseEntity<IResponse> getMyStatistics() {
+        int userId = authService.getUserIdOrZero();
+        IResponse result = postService.getMyStatistics(userId);
+        return ResponseEntity.status(HttpStatus.OK).body(result);
+    }
+
+    @GetMapping(value = "/statistics/all", produces = "application/json")
+    private ResponseEntity<IResponse> getStatistics(WebRequest request) {
+        if (!settingsService.isGlobalStatisticPublic() && !request.isUserInRole("1")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
+        IResponse result = postService.getAllStatistics();
+        return ResponseEntity.status(HttpStatus.OK).body(result);
+    }
+
+    @PostMapping(value = "/moderation")
+    private ResponseEntity<IResponse> moderation(@RequestBody Moderation moderation, WebRequest request) {
+        int moderatorId = authService.getUserIdOrZero();
+        IResponse result = postService.moderation(moderation, moderatorId, request);
+        return ResponseEntity.status(HttpStatus.OK).body(result);
+    }
+
+    @PostMapping(value = "/profile/my", consumes = "application/json")
+    private ResponseEntity<IResponse> editProfile(@RequestBody Profile profile) {
+        System.err.println(profile.getRemovePhoto());
+        IResponse result = authService.setProfile(null, profile.getName(), profile.getEmail(),
+                profile.getPassword(), profile.getRemovePhoto());
+        return ResponseEntity.status(HttpStatus.OK).body(result);
+    }
+
+    @PostMapping(value = "/profile/my", consumes = "multipart/form-data")
+    private ResponseEntity<IResponse> editProfileWithPhotoUpload(@RequestParam MultipartFile photo,
+                                                                 @RequestParam String name, @RequestParam String email,
+                                                                 @RequestParam(required = false) String password, @RequestParam int removePhoto) {
+        IResponse result = authService.setProfile(photo, name, email, password, removePhoto);
+        return ResponseEntity.status(HttpStatus.OK).body(result);
+    }
 }

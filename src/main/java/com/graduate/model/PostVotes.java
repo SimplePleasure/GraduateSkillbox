@@ -15,9 +15,8 @@ public class PostVotes {
     @Column(name = "user_id")
     private int userId;
     @NotNull
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "post_id")
-    private Post post;
+    @Column(name = "post_id")
+    private int postId;
 
     @NotNull
     private LocalDateTime time;
@@ -28,41 +27,30 @@ public class PostVotes {
     public int getId() {
         return id;
     }
-
     public void setId(int id) {
         this.id = id;
     }
-
     public int getUserId() {
         return userId;
     }
-
     public void setUserId(int userId) {
         this.userId = userId;
     }
-
-
-    public Post getPost() {
-        return post;
+    public int getPostId() {
+        return postId;
     }
-    public void setPost(Post post) {
-        this.post = post;
+    public void setPostId(int postId) {
+        this.postId = postId;
     }
-
-
-
     public LocalDateTime getTime() {
         return time;
     }
-
     public void setTime(LocalDateTime time) {
         this.time = time;
     }
-
     public byte getValue() {
         return value;
     }
-
     public void setValue(byte value) {
         this.value = value;
     }

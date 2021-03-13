@@ -39,4 +39,4 @@ INSERT into blog.tag2post (post_id, tag_id) values (1, 1), (1, 2), (1, 3), (2, 1
 insert into blog.global_settings (code, name, value) values
 ('MULTIUSER_MODE', 'Многопользовательский режим', 'NO'),
 ('POST_PREMODERATION', 'Премодерация постов', 'NO'),
-('STATISTIC_IS_PUBLIC', 'Показывать всем статистику блога', 'NO');
+('STATISTICS_IS_PUBLIC', 'Показывать всем статистику блога', 'NO');

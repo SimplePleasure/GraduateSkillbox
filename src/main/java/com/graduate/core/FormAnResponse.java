@@ -3,7 +3,7 @@ package com.graduate.core;
 import com.graduate.base.IResponse;
 import com.graduate.response.ActionResultTemplateWithErrors;
 
-public class ResponseFormer {
+public class FormAnResponse {
 
     public static IResponse getErrResponseFromPost(boolean isTextTooShort, boolean isTitleTooShort) {
         ActionResultTemplateWithErrors result = new ActionResultTemplateWithErrors(false);
@@ -30,6 +30,17 @@ public class ResponseFormer {
         }
         if (!captchaTimeCorrect) {
             result.addError("captcha", "captcha code is deprecated");
+        }
+        return result;
+    }
+
+    public static IResponse getErrFromEditProfile(boolean invalidPass, boolean invalidEmail) {
+        ActionResultTemplateWithErrors result = new ActionResultTemplateWithErrors(false);
+        if (invalidPass) {
+            result.addError("password", "password must be no less then 6 chars");
+        }
+        if (invalidEmail) {
+            result.addError("email", "this email already exists");
         }
         return result;
     }

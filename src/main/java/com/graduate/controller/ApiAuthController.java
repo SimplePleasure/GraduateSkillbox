@@ -2,9 +2,11 @@ package com.graduate.controller;
 
 import com.graduate.base.IResponse;
 import com.graduate.request.ChangePassword;
+import com.graduate.request.Email;
 import com.graduate.request.Register;
 import com.graduate.service.AuthService;
 import com.graduate.service.PostService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.WebRequest;
 
@@ -15,7 +17,7 @@ public class ApiAuthController {
     private final AuthService authService;
     private final PostService postService;
 
-    public ApiAuthController(AuthService authService, PostService postService) {
+    public ApiAuthController(@Autowired AuthService authService, @Autowired PostService postService) {
         this.authService = authService;
         this.postService = postService;
     }
@@ -30,16 +32,16 @@ public class ApiAuthController {
 
 
     // TODO: 14.02.2021 frontend code sending mime application/json
-    @RequestMapping(value = "/login", method = RequestMethod.POST, consumes = "application/x-www-form-urlencoded")
+    @RequestMapping(value = "/login", method = RequestMethod.POST, consumes = "application/json")
     public void login(@RequestParam(value = "e_mail") String email, @RequestParam String password) {
 
     }
 
 
-    // TODO: 14.02.2021 frontend code sending mime application/json
-    @RequestMapping(value = "/restore", method = RequestMethod.POST, consumes = "application/x-www-form-urlencoded")
-    public IResponse restorePassword(@RequestParam(value = "e_mail") String email) {
-        return authService.restorePassword(email);
+    // TODO: 14.02.2021 frontend code sending mime
+    @RequestMapping(value = "/restore", method = RequestMethod.POST, consumes = "application/json")
+    public IResponse restorePassword(@RequestBody Email email) {
+        return authService.restorePassword(email.getEmail());
     }
 
     @RequestMapping(value = "/password", method = RequestMethod.POST, consumes = "application/json")

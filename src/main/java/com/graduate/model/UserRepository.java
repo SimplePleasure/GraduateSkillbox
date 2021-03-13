@@ -5,6 +5,8 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface UserRepository extends CrudRepository<User, Integer> {
 
@@ -12,7 +14,7 @@ public interface UserRepository extends CrudRepository<User, Integer> {
     User getUserByEmail(@Param("email") String email);
 
     @Query(value = "SELECT * FROM blog.users WHERE code = :code", nativeQuery = true)
-    User getUserByCode(@Param("code") String hash);
+    Optional<User> getUserByCode(@Param("code") String hash);
 
     @Query(value = "SELECT id FROM blog.users WHERE email = :mail", nativeQuery = true)
     int getUserId(@Param("mail") String mail);

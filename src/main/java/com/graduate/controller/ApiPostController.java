@@ -1,9 +1,13 @@
 package com.graduate.controller;
 
 import com.graduate.base.IResponse;
+import com.graduate.model.User;
 import com.graduate.request.AddPost;
+import com.graduate.request.Vote;
 import com.graduate.service.AuthService;
 import com.graduate.service.PostService;
+import com.graduate.service.SettingsService;
+import com.graduate.service.VoteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,10 +21,15 @@ public class ApiPostController {
 
     private final PostService postService;
     private final AuthService authService;
+    private final VoteService voteService;
+    private final SettingsService settingsService;
 
-    public ApiPostController(@Autowired PostService postService, @Autowired AuthService authService) {
+    public ApiPostController(@Autowired PostService postService, @Autowired AuthService authService,
+                             @Autowired VoteService voteService, @Autowired SettingsService settingsService) {
         this.postService = postService;
         this.authService = authService;
+        this.voteService = voteService;
+        this.settingsService = settingsService;
     }
 
 
@@ -77,13 +86,30 @@ public class ApiPostController {
 
     @RequestMapping(method = RequestMethod.POST, consumes = "application/json", produces = "application/json")
     public ResponseEntity<IResponse> addPost(@RequestBody AddPost addPost) {
-        IResponse result = postService.addPost(addPost, authService.getCurrentUserOrThrow());
+        IResponse result = postService.addPost(addPost, authService.getCurrentUserOrThrow(),
+                settingsService.isPreModerationEnabled());
         return ResponseEntity.status(HttpStatus.OK).body(result);
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.PUT, consumes = "application/json", produces = "application/json")
     public ResponseEntity<IResponse> editPost(@PathVariable int id, @RequestBody AddPost addPost, WebRequest request) {
-        IResponse result = postService.editPost(addPost, id, request);
+        IResponse result = postService.editPost(addPost, id, request, settingsService.isPreModerationEnabled());
+        return ResponseEntity.status(HttpStatus.OK).body(result);
+    }
+
+    @RequestMapping(value = "/like" , method = RequestMethod.POST)
+    public ResponseEntity<IResponse> like(@RequestBody Vote vote) {
+
+        User user = authService.getCurrentUserOrThrow();
+        IResponse result = voteService.vote(vote.getPostId(), user.getId(), Byte.parseByte("1"));
+        return ResponseEntity.status(HttpStatus.OK).body(result);
+    }
+
+    @RequestMapping(value = "/dislike" , method = RequestMethod.POST)
+    public ResponseEntity<IResponse> dislike(@RequestBody Vote vote) {
+
+        User user = authService.getCurrentUserOrThrow();
+        IResponse result = voteService.vote(vote.getPostId(), user.getId(), Byte.parseByte("-1"));
         return ResponseEntity.status(HttpStatus.OK).body(result);
     }
 

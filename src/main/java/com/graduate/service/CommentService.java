@@ -20,32 +20,6 @@ public class CommentService {
         this.commentsRepository = commentsRepository;
     }
 
-
-//    public IResponse addComment(AddComment addComment, Post post, User user) {
-//        System.err.println(addComment.getParentId());
-//        if (addComment.getText().length() < 5) {
-//            ActionResultTemplateWithErrors response = new ActionResultTemplateWithErrors(false);
-//            response.addError("Text", "Comment text too short");
-//            return response;
-//        }
-//
-//        PostComments pc = new PostComments();
-//        if (addComment.getParentId() != 0) {
-//            if (post.getPostComments().stream().anyMatch(x -> x.getId() == addComment.getParentId())) {
-//                pc.setParentId(addComment.getParentId());
-//            } else {
-//                throw new CommentNotFoundException("specified comment is missing from post");
-//            }
-//        }
-//
-//        pc.setText(addComment.getText());
-//        pc.setTime(LocalDateTime.now());
-//        pc.setPost(post);
-//        pc.setUser(user);
-//        pc = commentsRepository.save(pc);
-//        return new AddedComment(pc.getId());
-//    }
-
     public IResponse addComment(AddComment addComment, Post post, User user) {
         if (addComment.getText().length() < 5) {
             ActionResultTemplateWithErrors response = new ActionResultTemplateWithErrors(false);
